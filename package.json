@@ -1,0 +1,36 @@
+{
+  "name": "gowazzap",
+  "version": "1.0.0",
+  "description": "service gowazzap",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "lint:check": "eslint ."
+  },
+  "author": "Kalla Intern Omni Channel",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^8.23.1",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.7.1",
+    "sequelize-cli": "^6.4.1"
+  },
+  "dependencies": {
+    "@adiwajshing/baileys": "^4.4.0",
+    "@hapi/boom": "^10.0.0",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.2",
+    "express": "^4.18.1",
+    "express-validator": "^6.14.2",
+    "http": "^0.0.1-security",
+    "mysql2": "^2.3.3",
+    "qrcode": "^1.5.1",
+    "sequelize": "^6.23.1",
+    "socket.io": "^4.5.2"
+  }
+}
