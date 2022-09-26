@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-escape */
 /* eslint-disable no-multi-assign */
 /* eslint-disable max-len */
 /* eslint-disable consistent-return */
@@ -8,6 +9,7 @@ const qrcode = require('qrcode');
 const express = require('express');
 const http = require('http');
 const bodyParser = require('body-parser');
+const multer = require('multer');
 
 const port = process.env.PORT || 3000;
 
@@ -23,7 +25,7 @@ const {
   DisconnectReason,
   useSingleFileAuthState,
 } = require('@adiwajshing/baileys');
-const { User } = require('./src/models');
+const { User, Message } = require('./src/models');
 
 // Init express
 const router = require('./src/routes/index.routes');
@@ -36,7 +38,34 @@ app.use('/api/', router);
 
 app.use(cors());
 
-const { phoneNumberFormatter } = require('./src/helper/formatter');
+const { phoneNumberFormatter, titleFormatter } = require('./src/helper/formatter');
+
+const fileStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'images');
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  },
+});
+
+const fileFilter = (req, file, cb) => {
+  if (
+    file.mimetype === 'image/png'
+    || file.mimetype === 'image/jpg'
+    || file.mimetype === 'image/jpeg') {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+};
+app.use(multer({ storage: fileStorage, fileFilter }).single('image'));
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTION');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  next();
+});
 
 const { state, saveState } = useSingleFileAuthState('./auth_info_1.json');
 async function startBot() {
@@ -149,6 +178,72 @@ async function startBot() {
     }
     const pesan = `Verifikasi kode register ${body.otp}`;
     sock.sendMessage(number, { text: pesan });
+  });
+  app.post('/api/sendMessage', [
+    check('title', 'title cannot empty').notEmpty(),
+    check('caption').notEmpty().withMessage('caption cannot empty'),
+    check('link').notEmpty().withMessage('link cannot empty'),
+    check('wa').notEmpty().withMessage('wa cannot empty')
+      .matches(/^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/)
+      .withMessage('Your number is not valid'),
+
+  ], (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    if (!req.file) {
+      return res.status(422).json({
+        success: 'Failed',
+        message: 'Image cannot empty',
+      });
+    }
+    const { body } = req;
+    const images = req.file.path;
+    body.image = images;
+    const number = phoneNumberFormatter(body.wa);
+    const titles = titleFormatter(body.title);
+
+    try {
+      const {
+        title, caption, image, link,
+      } = req.body;
+      Message.create({
+        title,
+        caption,
+        image,
+        link,
+
+      });
+      res.status(200).json({
+        message: 'Register success',
+        data: req.body,
+      });
+    } catch (err) {
+      return res.status(500).json({
+        success: 'Failed',
+        message: 'Database connection error',
+      });
+    }
+
+    const templateButttons = [
+      { index: 1, urlButton: { displayText: 'Klik', url: body.link } },
+
+    ];
+
+    const buttonMessage = {
+      caption: titles,
+      footer: body.caption,
+      templateButtons: templateButttons,
+      image: { url: images }, // it can be array { url: 'https://example.com/image.jpeg' } or buffer
+      headerType: 4,
+    };
+    sock.sendMessage(number, buttonMessage);
+    return res.status(201).json({
+      message: 'Success',
+      data: req.body,
+
+    });
   });
 }
 

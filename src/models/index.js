@@ -18,6 +18,7 @@ const config = require('../../database/config/config.js');
 
 const db = {};
 const User = require('../models/user');
+const Message = require('../models/message');
 
 const sequelize = new Sequelize(
   config.database,

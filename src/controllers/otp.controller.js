@@ -1,7 +1,5 @@
 const { User } = require('../models');
 
-// Create product baru
-// eslint-disable-next-line consistent-return
 const checkOTP = async (req, res) => {
   try {
     const {
