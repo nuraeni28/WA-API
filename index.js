@@ -216,7 +216,7 @@ async function startBot() {
 
       });
       res.status(200).json({
-        message: 'Register success',
+        message: 'Send Message success',
         data: req.body,
       });
     } catch (err) {

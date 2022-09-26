@@ -11,6 +11,12 @@ module.exports = (sequelize, DataTypes) => {
      */
   }
   Message.init({
+    id: {
+      allowNull: false,
+      primaryKey: true,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+    },
     title: DataTypes.STRING,
     caption: DataTypes.STRING,
     image: DataTypes.STRING,
